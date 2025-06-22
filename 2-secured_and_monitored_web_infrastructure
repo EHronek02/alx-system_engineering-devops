@@ -1,0 +1,84 @@
+                        ┌─────────────────────────────┐
+                        │         User (Browser)      │
+                        └─────────────┬───────────────┘
+                                      │
+                         HTTPS request to www.foobar.com
+                                      │
+                                      ▼
+                    ┌────────────────────────────────────┐
+                    │     Load Balancer (HAProxy)        │
+                    │  - SSL Certificate (HTTPS)         │
+                    │  - Firewall #1                      │
+                    │  - Monitoring Agent                 │
+                    └────────────────┬───────────────────┘
+                                     │
+                  ┌──────────────────┴────────────────────┐
+                  ▼                                       ▼
+     ┌────────────────────────┐           ┌────────────────────────┐
+     │ Web & App Server #1    │           │ Web & App Server #2    │
+     │ - Nginx + Gunicorn      │           │ - Nginx + Gunicorn      │
+     │ - App Files             │           │ - App Files             │
+     │ - Firewall #2           │           │ - Firewall #2           │
+     │ - Monitoring Agent      │           │ - Monitoring Agent      │
+     └────────────┬───────────┘           └────────────┬───────────┘
+                  ▼                                       ▼
+                      ┌────────────────────────────┐
+                      │      MySQL Database        │
+                      │ - Primary Node (write)     │
+                      │ - Optional Replica (read)  │
+                      │ - Firewall #3              │
+                      │ - Monitoring Agent         │
+                      └────────────────────────────┘
+
+
+Jargon Explained Simply
+Firewalls
+Firewalls filter incoming/outgoing network traffic based on rules.
+
+Protect each layer:
+
+Load balancer → restrict to HTTPS only
+
+App servers → allow only traffic from LB
+
+DB → allow only app server IPs
+
+HTTPS / SSL Certificate
+HTTPS (HTTP Secure) encrypts communication between the browser and your server.
+
+SSL cert from a Certificate Authority (e.g., Let's Encrypt) is installed on the load balancer.
+
+Monitoring
+Allows real-time visibility into your infrastructure’s health, performance, and traffic.
+
+You can monitor:
+
+CPU, memory, disk usage
+
+HTTP requests, QPS (queries per second)
+
+Application logs
+
+DB query response times
+
+How Monitoring Works
+Monitoring client (agent) like Sumo Logic, Prometheus Node Exporter, or Datadog Agent:
+
+Collects system metrics and logs
+
+Sends them to central monitoring dashboards for analysis and alerting
+
+Example: Monitoring Web Server QPS
+QPS (Queries Per Second) = number of requests your web server processes per second.
+
+To monitor it:
+
+Use Nginx logs with tools like:
+
+Prometheus + Grafana: use Nginx exporter
+
+Sumologic: ingest access logs with query patterns
+
+Set alerts if QPS exceeds threshold (e.g., spike above 500 QPS → alert DevOps)
+
+

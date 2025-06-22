@@ -1,0 +1,64 @@
+                        ┌────────────────────────────────┐
+                        │          User Browser          │
+                        └────────────┬───────────────────┘
+                                     │
+                    HTTPS request to www.foobar.com
+                                     │
+                                     ▼
+                          DNS resolves www.foobar.com
+                                → Load Balancer (LB)
+                                     │
+         ┌───────────────────────────┴────────────────────────────┐
+         ▼                                                        ▼
+ ┌──────────────────────┐                             ┌──────────────────────┐
+ │     Web Server 1     │                             │     Web Server 2     │
+ │  Nginx + App Server  │                             │  Nginx + App Server  │
+ │  + App Files         │                             │  + App Files         │
+ └──────────┬───────────┘                             └──────────┬───────────┘
+            ▼                                                           ▼
+                      ┌────────────────────────────────────┐
+                      │        MySQL Database Server       │
+                      │    Primary-Replica Configuration   │
+                      │    Primary → Handles Writes        │
+                      │    Replica → Handles Reads         │
+                      └────────────────────────────────────┘
+
+DNS Configuration
+www.foobar.com is a DNS A record that maps to the public IP of the load balancer.
+
+Technical Concepts & Jargon Explained
+1. Load Balancer (HAProxy)
+Distributes client requests between backend servers to balance the traffic load.
+
+Prevents any single server from becoming overwhelmed.
+
+Distribution Algorithm Used: Round Robin
+Requests are sent to each server in sequence: S1 → S2 → S1 → S2...
+
+Simple and fair when servers are equally powerful.
+
+
+Active-Active vs Active-Passive
+Active-Active - All backend servers are actively receiving traffic simultaneously.
+Active-Passive - One active backend handles traffic; the other stays on standby for failover.
+
+This design uses Active-Active, because both web/app servers are active and share traffic via round robin.
+
+2. Primary-Replica (Master-Slave) Database
+Primary (aka Master): Handles all write operations (insert, update, delete).
+
+Replica (aka Slave): Handles read operations (select), replicates changes from the master.
+
+This enhances performance and allows scalability, by offloading read queries to the replica.
+
+How Replication Works
+MySQL uses binlog (binary log) from the master, which is streamed to the replica, keeping it in sync.
+
+
+Difference (in relation to the application)
+-----------------------------------------------
+Role	    |        Purpose                  |
+----------------------------------------------|
+Primary	    |    App connects here for writes |
+Replica	    |     App connects here for reads |
+----------------------------------------------

@@ -1,0 +1,63 @@
+                           ┌────────────────────┐
+                           │     User Browser   │
+                           └─────────┬──────────┘
+                                     │ HTTPS
+                                     ▼
+                 ┌────────────────────────────────────────┐
+                 │ Load Balancer Cluster (HAProxy x2)     │
+                 │ - SSL Termination                      │
+                 │ - Active-Active Setup                  │
+                 └─────────┬────────────────────┬─────────┘
+                           ▼                    ▼
+          ┌────────────────────────┐  ┌────────────────────────┐
+          │   Web Server #1 (Nginx)│  │   Web Server #2 (Nginx)│
+          └──────────┬─────────────┘  └──────────┬─────────────┘
+                     ▼                           ▼
+          ┌────────────────────────┐  ┌────────────────────────┐
+          │App Server #1 (Gunicorn)│  │App Server #2 (Gunicorn)│
+          └──────────┬─────────────┘  └──────────┬─────────────┘
+                     ▼                           ▼
+                ┌────────────────────────────┐
+                │   Database Server (MySQL)  │
+                │  (Primary + Optional Rep.) │
+                └────────────────────────────┘
+
+
+Components Added and Why
+Component	Why it's added
++1 Server	To host one of the new split components (web/app/db)
+HAProxy Cluster (x2)	Improves fault tolerance — if one fails, the other handles traffic (no SPOF).
+Web Server Split (Nginx)	Separates the presentation (static assets, reverse proxy) from logic — better caching, performance, and modularity.
+Application Server (Gunicorn, uWSGI)	Runs backend logic (e.g., Python Flask/Django, Node.js), scales independently from frontend.
+Dedicated Database Server (MySQL)	Keeps database isolated for better security, performance, and manageability.
+
+📚 Key Concept: Web Server vs Application Server
+Web Server (e.g., Nginx)	Application Server (e.g., Gunicorn)
+Serves static content (HTML, CSS, JS, images)	Serves dynamic content (backend logic: Python, PHP, Node)
+Acts as reverse proxy to the app server	Executes your app code (e.g., Flask, Django)
+Optimized for handling concurrent HTTP requests	Optimized for running application logic and frameworks
+
+🔁 Load Balancer Configuration
+HAProxy Cluster Mode: Active-Active
+Both load balancers are simultaneously online and share incoming traffic.
+
+Uses DNS round-robin, VRRP (keepalived), or floating IP for failover.
+
+Load Balancer Distribution Algorithm:
+Round Robin: Each request is forwarded to the next available backend in order.
+
+Can also use:
+
+Least Connections
+
+Source Hashing
+
+Sticky Sessions (IP hashing or cookie-based)
+
+🚧 Infrastructure Benefits After Scaling Up
+Benefit	How It Helps
+No SPOFs	Redundant load balancer and stateless app tier
+Horizontal Scalability	Each layer (web, app) can be scaled separately
+Performance Optimization	Web server can cache and serve static assets efficiently
+Separation of Concerns	Easier debugging, security isolation, autoscaling logic
+Better Security	Each layer can have its own firewall, ACLs, least-privilege networking

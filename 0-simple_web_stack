@@ -1,0 +1,149 @@
+User Computer
+     │
+     ▼
+  DNS Server (foobar.com → 8.8.8.8)
+     │
+     ▼
+[Server @ 8.8.8.8]
+├── Web Server: Nginx (Port 80/443)
+├── App Server: e.g., Python/Node.js (Port 3000)
+├── Database: MySQL (Port 3306)
+└── App Files: /var/www/foobar/
+
+User → www.foobar.com → DNS resolves to 8.8.8.8 → Nginx → App Server → MySQL
+
+
+                        ┌────────────────────────────────┐
+                        │        User Browser            │
+                        │        (e.g., Chrome)          │
+                        └────────────┬───────────────────┘
+                                     │
+                    HTTPS Request to www.foobar.com
+                                     │
+                                     ▼
+                          [ Internet + DNS Lookup ]
+                                     │
+                                     ▼
+                       DNS resolves www.foobar.com
+                             → 8.8.8.8 (A record)
+                                     │
+                                     ▼
+                    ┌────────────────────────────────┐
+                    │           Server (8.8.8.8)      │
+                    │ ┌────────────────────────────┐ │
+                    │ │         Nginx (Web Server) │ │
+                    │ │   Listens on port 80/443   │ │
+                    │ └────────────┬───────────────┘ │
+                    │             ▼                 │
+                    │   ┌────────────────────────┐  │
+                    │   │ App Server (Gunicorn)  │  │
+                    │   │ Runs Python/Flask/Django│ │
+                    │   └────────────┬───────────┘  │
+                    │                ▼              │
+                    │         ┌────────────┐        │
+                    │         │ Code Base  │        │
+                    │         │ (App Files)│        │
+                    │         └─────┬──────┘        │
+                    │               ▼               │
+                    │         ┌─────────────┐       │
+                    │         │ MySQL DB    │       │
+                    │         │ (localhost) │       │
+                    │         └─────────────┘       │
+                    └────────────────────────────────┘
+
+
+
+1. Server
+A physical or virtual machine (VPS/cloud instance) that hosts the entire stack (web server, application, and database).
+
+
+In this setup, it has a public IP address: 8.8.8.8
+
+
+
+2. Domain Name (foobar.com)
+A human-readable address for accessing the website.
+
+
+Instead of remembering 8.8.8.8, users type www.foobar.com.
+
+
+
+3. DNS Record
+www in www.foobar.com is a subdomain.
+
+
+It uses a Type A DNS record to map www.foobar.com → 8.8.8.8
+
+
+
+4. Web Server (Nginx)
+Handles incoming HTTP/HTTPS requests
+
+
+Can serve static content directly (images, CSS, JS)
+
+
+Acts as a reverse proxy, forwarding dynamic requests to the application server (e.g., Gunicorn)
+
+
+
+5. Application Server (e.g., Gunicorn, uWSGI)
+Runs your backend logic (Python, Node.js, PHP, etc.)
+
+
+Processes dynamic requests (e.g., user login, database queries)
+
+
+Interacts with both Nginx (frontend) and MySQL (backend)
+
+
+
+6. Application Files (Codebase)
+Contains your source code: routes, templates, logic, etc.
+
+
+Example: Flask app in app.py, Django project, etc.
+
+
+
+7. Database (MySQL)
+Stores persistent data: users, posts, products, etc.
+
+
+Installed on the same server, typically communicating via localhost
+
+
+
+8. Communication Protocol
+User’s browser sends an HTTP or HTTPS request to Nginx over the internet.
+
+
+Nginx and App Server communicate over localhost (UNIX socket or HTTP port).
+
+
+App Server communicates with MySQL using TCP (port 3306) or UNIX socket.
+
+
+
+
+Issues with This Infrastructure
+1. SPOF (Single Point of Failure)
+Only 1 server: if it crashes, the whole site goes down.
+
+
+
+2. Downtime During Maintenance
+If you need to update code or restart the web server, the website becomes temporarily unavailable.
+
+
+
+3. Scalability Limitations
+One server can't handle high traffic.
+
+
+No load balancing or horizontal scaling.
+
+
+Resources (CPU, RAM) are limited to that one machine.
+

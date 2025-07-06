@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# configure server to have custom 404 page
+sudo apt-get update
+sudo apt-get install -y nginx
+
+#setup custom html file
+sudo bash -c cat <<- EOF > sudo /var/www/html/index.html
+        <!DOCTYPE html>
+	<html>
+	<head>
+		<title>Hello World</title>
+	</head>
+	<body>
+		<h1>Hello World!</h1>
+	</body>
+	</html>
+EOF
+
+#custom 404 page
+sudo bash -c cat <<- EOF > /var/www/html/404.html
+	Ceci n'est pas une page
+EOF
+
+sudo bash -c cat <<- EOF > /etc/nginx/sites-available/default
+	server {
+		listen 80;
+		server_name _;
+		add_header X-Server-By \$hostname;
+
+		location / {
+			root /var/www/html;
+			index index.html;
+		}
+		location /redirect_me {
+			return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
+		}
+		error_page 404 /404.html;
+		location /404 {
+			root /var/www/html;
+			internal;
+		}
+	}
+EOF
+sudo service nginx restart

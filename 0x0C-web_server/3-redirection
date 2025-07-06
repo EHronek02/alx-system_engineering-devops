@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# install nginx in a new server
+sudo apt update -y
+sudo apt -y install nginx
+sudo chmod 666 /var/www/html/index.nginx-debian.html
+sudo chmod 666 /usr/share/nginx/html/index.html
+echo "Hello World!" > /var/www/html/index.nginx-debian.html
+echo "Hello World!" > /usr/share/nginx/html/index.html
+
+#configure nginx to listen on port 80
+cat <<- EOF > /etc/nginx/sites-available/default
+        server {
+		listen 80;
+		server_name _;
+		add_header X-Served-By \$hostname;
+
+		location / {
+			root /var/www/html;
+			index index.html;
+		}
+		location /redirect_me {
+			return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
+		}
+	}
+EOF
+
+#starting nginx
+sudo service nginx restart

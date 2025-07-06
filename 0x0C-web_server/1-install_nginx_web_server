@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Install Nginx with the following:
+#	 listens on port 80
+#	 Returns a page containing "Hello World!" with Curl GET Request
+
+sudo apt-get update -y
+sudo apt-get install nginx -y
+
+nginx_pid=$(pgrep nginx)
+
+if [ -z "$nginx_pid" ]; then
+	/etc/init.d/nginx start
+fi
+
+sudo ufw allow "Nginx HTTP"
+
+sudo chown -R "$USER":"$USER" /var/www/html
+sudo chmod -R 755 /var/www
+
+echo "Hello World!" > /var/www/html/index.html
+
+# Check if nginx is running and if not restart
+nginx_pid=$(pgrep nginx)
+if [ -z "nginx_pid" ]; then
+	/etc/init.d/nginx restart
+fi
+
+if ! grep -q "listen 80;" /etc/nginx/sites-available/default; then
+	sed -i 's/listen 80 default_server;/listen 80;/' /etc/nginx/sites-available/default
+	/etc/init.d/nginx reload
+fi
+
+sudo service nginx restart
+

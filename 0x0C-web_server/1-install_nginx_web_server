@@ -2,14 +2,26 @@
 # Install Nginx with the following:
 #	 listens on port 80
 #	 Returns a page containing "Hello World!" with Curl GET Request
-
-sudo apt-get update -y
+#sudo apt-get update
+#sudo apt-get install -y nginx
+#mkdir /etc/nginx/html
+#touch /etc/nginx/html/index.html
+#echo "Hello World!" > /etc/nginx/html/index.html
+#printf %s "server {
+#    listen      80 default_server;
+#     listen      [::]:80 default_server;
+#     root        /etc/nginx/html;
+#     index       index.html index.htm;
+#}
+#" > /etc/nginx/sites-available/default
+# setup custom HTML file
+sudo apt-get update
 sudo apt-get install nginx -y
 
 nginx_pid=$(pgrep nginx)
 
 if [ -z "$nginx_pid" ]; then
-	/etc/init.d/nginx start
+    /etc/init.d/nginx start
 fi
 
 sudo ufw allow "Nginx HTTP"
@@ -19,16 +31,16 @@ sudo chmod -R 755 /var/www
 
 echo "Hello World!" > /var/www/html/index.html
 
-# Check if nginx is running and if not restart
+#check again if nginx is running and restart if not
 nginx_pid=$(pgrep nginx)
-if [ -z "nginx_pid" ]; then
-	/etc/init.d/nginx restart
+if [ -z "$nginx_pid" ]; then
+    /etc/init.d/nginx restart
 fi
 
 if ! grep -q "listen 80;" /etc/nginx/sites-available/default; then
-	sed -i 's/listen 80 default_server;/listen 80;/' /etc/nginx/sites-available/default
+    sed -i 's/listen 80 default_server;/listen 80;/' /etc/nginx/sites-available/default
 	/etc/init.d/nginx reload
 fi
 
 sudo service nginx restart
-
+echo "Nginx Installation Script is successfull"
